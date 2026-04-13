@@ -2,10 +2,19 @@
 
 import { useActionState } from 'react'
 import { signIn } from '@/lib/auth/actions'
+import { createInsForgeClient } from '@/lib/insforge/client'
 import Link from 'next/link'
 
 export default function SignInPage() {
   const [state, formAction, isPending] = useActionState(signIn, null)
+
+  const handleOAuth = async (provider: 'github' | 'google') => {
+    const insforge = createInsForgeClient()
+    await insforge.auth.signInWithOAuth({
+      provider,
+      redirectTo: window.location.origin + '/',
+    })
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#1a1145] to-[#24243e] px-4">
@@ -101,6 +110,7 @@ export default function SignInPage() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
+              onClick={() => handleOAuth('github')}
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white/80 hover:bg-white/[0.1] hover:text-white transition-all duration-200 cursor-pointer"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -110,6 +120,7 @@ export default function SignInPage() {
             </button>
             <button
               type="button"
+              onClick={() => handleOAuth('google')}
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white/80 hover:bg-white/[0.1] hover:text-white transition-all duration-200 cursor-pointer"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
