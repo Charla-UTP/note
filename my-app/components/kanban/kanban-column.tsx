@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Column, Card } from '@/lib/kanban/actions'
 import { KanbanCard } from './kanban-card'
 
@@ -13,6 +13,7 @@ interface Props {
   onDeleteCard: (cardId: string) => void
   onMoveCard: (cardId: string, newColumnId: string) => void
   onDeleteColumn: (columnId: string) => void
+  onUpdateColumn: (columnId: string, title: string) => void
   draggedCardId: string | null
   onDragStart: (cardId: string) => void
   onDragEnd: () => void
@@ -44,6 +45,7 @@ export function KanbanColumn({
   onDeleteCard,
   onMoveCard,
   onDeleteColumn,
+  onUpdateColumn,
   draggedCardId,
   onDragStart,
   onDragEnd,
@@ -54,10 +56,21 @@ export function KanbanColumn({
   const [newCardDesc, setNewCardDesc] = useState('')
   const [isDragOver, setIsDragOver] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [editTitle, setEditTitle] = useState(column.title)
+  const titleInputRef = useRef<HTMLInputElement>(null)
 
   const colorIdx = column.position % 5
   const headerColor = columnColors[colorIdx] ?? columnColors[0]
   const dotColor = dotColors[colorIdx] ?? dotColors[0]
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus()
+      titleInputRef.current.select()
+    }
+  }, [isEditingTitle])
 
   const handleAdd = () => {
     if (!newCardTitle.trim()) return
@@ -74,6 +87,24 @@ export function KanbanColumn({
     }
     onDeleteColumn(column.id)
     setShowDeleteConfirm(false)
+  }
+
+  const handleSaveTitle = () => {
+    const trimmed = editTitle.trim()
+    if (trimmed && trimmed !== column.title) {
+      onUpdateColumn(column.id, trimmed)
+    } else {
+      setEditTitle(column.title)
+    }
+    setIsEditingTitle(false)
+  }
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSaveTitle()
+    if (e.key === 'Escape') {
+      setEditTitle(column.title)
+      setIsEditingTitle(false)
+    }
   }
 
   // ─── Drag handlers ───
@@ -115,12 +146,35 @@ export function KanbanColumn({
     >
       {/* Column header */}
       <div className={`flex items-center justify-between px-4 py-3 rounded-t-2xl bg-gradient-to-r ${headerColor} border border-b-0 border-white/[0.06]`}>
-        <div className="flex items-center gap-2">
-          <div className={`w-2.5 h-2.5 rounded-full ${dotColor}`} />
-          <h3 className="text-sm font-semibold text-white">{column.title}</h3>
-          <span className="text-xs text-white/30 ml-1">{cards.length}</span>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dotColor}`} />
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={handleSaveTitle}
+              onKeyDown={handleTitleKeyDown}
+              className="flex-1 min-w-0 px-2 py-0.5 rounded-md bg-white/[0.1] border border-white/[0.15] text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-200"
+            />
+          ) : (
+            <h3
+              className="text-sm font-semibold text-white truncate cursor-pointer hover:text-purple-200 transition-colors duration-150"
+              onDoubleClick={() => {
+                setEditTitle(column.title)
+                setIsEditingTitle(true)
+              }}
+              title="Doble clic para editar"
+            >
+              {column.title}
+            </h3>
+          )}
+          {!isEditingTitle && (
+            <span className="text-xs text-white/30 ml-1 flex-shrink-0">{cards.length}</span>
+          )}
         </div>
-        <div className="relative">
+        <div className="relative flex-shrink-0 ml-2">
           {showDeleteConfirm ? (
             <div className="flex items-center gap-1 animate-fade-in">
               <span className="text-[10px] text-red-300 mr-1">¿Seguro?</span>
@@ -138,15 +192,29 @@ export function KanbanColumn({
               </button>
             </div>
           ) : (
-            <button
-              onClick={handleDeleteColumn}
-              className="p-1 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 cursor-pointer"
-              title="Eliminar columna"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => {
+                  setEditTitle(column.title)
+                  setIsEditingTitle(true)
+                }}
+                className="p-1 rounded-lg text-white/20 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-200 cursor-pointer"
+                title="Editar nombre"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                </svg>
+              </button>
+              <button
+                onClick={handleDeleteColumn}
+                className="p-1 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 cursor-pointer"
+                title="Eliminar columna"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
       </div>
