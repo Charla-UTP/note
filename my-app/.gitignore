@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+>>>>>>> 3bfad0dfa9c4f5883804c49c12b9e3b427143b8f
 # dependencies
 /node_modules
 /.pnp
@@ -28,8 +33,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+<<<<<<< HEAD
 # env files
 .env*.local
+=======
+# env files (can opt-in for committing if needed)
+.env*
+>>>>>>> 3bfad0dfa9c4f5883804c49c12b9e3b427143b8f
 
 # vercel
 .vercel
@@ -37,3 +47,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+<<<<<<< HEAD
+=======
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+>>>>>>> 3bfad0dfa9c4f5883804c49c12b9e3b427143b8f
