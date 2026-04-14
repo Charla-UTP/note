@@ -2,31 +2,16 @@ import { getCurrentUser, signOut } from '@/lib/auth/actions'
 import { getColumns, getCards } from '@/lib/kanban/actions'
 import { KanbanBoard } from '@/components/kanban/kanban-board'
 import Link from 'next/link'
-<<<<<<< HEAD
-import { redirect } from 'next/navigation'
-=======
 import { notFound } from 'next/navigation'
->>>>>>> 3bfad0dfa9c4f5883804c49c12b9e3b427143b8f
 
 export default async function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: boardId } = await params
   const user = await getCurrentUser()
-<<<<<<< HEAD
-
-  if (!user) {
-    redirect('/sign-in')
-  }
-
-  const columns = await getColumns(boardId)
-  const cards = await getCards(boardId)
-
-=======
   const columns = await getColumns(boardId)
   const cards = await getCards(boardId)
 
   if (!user) notFound()
 
->>>>>>> 3bfad0dfa9c4f5883804c49c12b9e3b427143b8f
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#1a1145] to-[#24243e] flex flex-col">
       {/* Ambient glow */}
