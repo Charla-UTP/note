@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 const publicPaths = ['/sign-in', '/sign-up']
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const accessToken = request.cookies.get('insforge_access_token')?.value
   const refreshToken = request.cookies.get('insforge_refresh_token')?.value

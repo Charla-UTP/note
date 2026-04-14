@@ -1,8 +1,12 @@
 import { getCurrentUser } from '@/lib/auth/actions'
 import { signOut } from '@/lib/auth/actions'
+import { getBoards } from '@/lib/kanban/actions'
+import { BoardList } from '@/components/kanban/board-list'
+import Link from 'next/link'
 
 export default async function Home() {
   const user = await getCurrentUser()
+  const boards = await getBoards()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#1a1145] to-[#24243e]">
@@ -19,7 +23,9 @@ export default async function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">Note</h1>
+            <Link href="/">
+              <h1 className="text-xl font-bold text-white tracking-tight">Note</h1>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -56,21 +62,7 @@ export default async function Home() {
           </p>
         </div>
 
-        {/* Empty state */}
-        <div className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-3xl p-16 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/20 mb-6">
-            <svg className="w-10 h-10 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">No tienes tableros aún</h3>
-          <p className="text-white/40 mb-8 max-w-md mx-auto">
-            Crea tu primer tablero Kanban para comenzar a organizar tus tareas y proyectos.
-          </p>
-          <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold hover:from-purple-500 hover:to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all duration-200 cursor-pointer">
-            + Crear tablero
-          </button>
-        </div>
+        <BoardList initialBoards={boards} />
       </main>
     </div>
   )
