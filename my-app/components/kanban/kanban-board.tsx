@@ -4,6 +4,7 @@ import { useState, useTransition, useCallback } from 'react'
 import {
   createColumn,
   deleteColumn,
+  updateColumn,
   createCard,
   updateCard,
   deleteCard,
@@ -52,6 +53,15 @@ export function KanbanBoard({ boardId, initialColumns, initialCards }: Props) {
     setCards((prev) => prev.filter((card) => card.column_id !== columnId))
     startTransition(async () => {
       await deleteColumn(columnId, boardId)
+    })
+  }
+
+  const handleUpdateColumn = (columnId: string, title: string) => {
+    setColumns((prev) =>
+      prev.map((c) => (c.id === columnId ? { ...c, title } : c))
+    )
+    startTransition(async () => {
+      await updateColumn(columnId, title, boardId)
     })
   }
 
@@ -139,6 +149,7 @@ export function KanbanBoard({ boardId, initialColumns, initialCards }: Props) {
           onDeleteCard={handleDeleteCard}
           onMoveCard={handleMoveCard}
           onDeleteColumn={handleDeleteColumn}
+          onUpdateColumn={handleUpdateColumn}
           draggedCardId={draggedCardId}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}

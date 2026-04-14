@@ -129,6 +129,20 @@ export async function deleteColumn(columnId: string, boardId: string) {
   return { success: true }
 }
 
+export async function updateColumn(columnId: string, title: string, boardId: string) {
+  const insforge = await getAuthClient()
+  const { data, error } = await insforge.database
+    .from('columns')
+    .update({ title })
+    .eq('id', columnId)
+    .select()
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/board/${boardId}`)
+  return { data: (data as Column[])?.[0] }
+}
+
 // ─────────────────── Cards ───────────────────
 
 export async function getCards(boardId: string): Promise<Card[]> {
