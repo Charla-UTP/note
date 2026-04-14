@@ -86,6 +86,20 @@ export async function deleteBoard(boardId: string) {
   return { success: true }
 }
 
+export async function updateBoard(boardId: string, title: string) {
+  const insforge = await getAuthClient()
+  const { data, error } = await insforge.database
+    .from('boards')
+    .update({ title })
+    .eq('id', boardId)
+    .select()
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/')
+  return { data: (data as Board[])?.[0] }
+}
+
 // ─────────────────── Columns ───────────────────
 
 export async function getColumns(boardId: string): Promise<Column[]> {
