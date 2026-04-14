@@ -106,7 +106,8 @@ export async function signOut() {
 export async function getCurrentUser() {
   const accessToken = await getAccessToken()
   if (!accessToken) {
-    // Try refreshing
+    // Try refreshing - but we can't set cookies during render
+    // Just return null and let the proxy handle redirection
     const refreshToken = await getRefreshToken()
     if (!refreshToken) return null
 
@@ -114,8 +115,7 @@ export async function getCurrentUser() {
     const { data: refreshData } = await insforge.auth.refreshSession({ refreshToken })
     if (!refreshData?.accessToken || !refreshData?.refreshToken) return null
 
-    await setAuthCookies(refreshData.accessToken, refreshData.refreshToken)
-
+    // We can't set cookies here during render. Use the refreshed token for this request only.
     const insforgeAuth = createInsForgeServerClient(refreshData.accessToken)
     const { data } = await insforgeAuth.auth.getCurrentUser()
     return data?.user ?? null
@@ -125,7 +125,7 @@ export async function getCurrentUser() {
   const { data, error } = await insforge.auth.getCurrentUser()
 
   if (error || !data?.user) {
-    // Try refresh on error
+    // Try refresh on error - but don't set cookies during render
     const refreshToken = await getRefreshToken()
     if (!refreshToken) return null
 
@@ -133,12 +133,27 @@ export async function getCurrentUser() {
     const { data: refreshData } = await insforgeRefresh.auth.refreshSession({ refreshToken })
     if (!refreshData?.accessToken || !refreshData?.refreshToken) return null
 
-    await setAuthCookies(refreshData.accessToken, refreshData.refreshToken)
-
+    // Use the refreshed token for this request only
     const insforgeAuth = createInsForgeServerClient(refreshData.accessToken)
     const { data: userData } = await insforgeAuth.auth.getCurrentUser()
     return userData?.user ?? null
   }
 
   return data.user
+}
+
+/**
+ * Refresh auth session and update cookies.
+ * This is a Server Action, so it can safely modify cookies.
+ */
+export async function refreshSession() {
+  const refreshToken = await getRefreshToken()
+  if (!refreshToken) return { success: false }
+
+  const insforge = createInsForgeServerClient()
+  const { data } = await insforge.auth.refreshSession({ refreshToken })
+  if (!data?.accessToken || !data?.refreshToken) return { success: false }
+
+  await setAuthCookies(data.accessToken, data.refreshToken)
+  return { success: true }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useCallback } from 'react'
 import {
   createColumn,
   deleteColumn,
@@ -24,6 +24,7 @@ export function KanbanBoard({ boardId, initialColumns, initialCards }: Props) {
   const [showAddColumn, setShowAddColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [draggedCardId, setDraggedCardId] = useState<string | null>(null)
 
   // ─── Column actions ───
 
@@ -95,14 +96,35 @@ export function KanbanBoard({ boardId, initialColumns, initialCards }: Props) {
     })
   }
 
-  const handleMoveCard = (cardId: string, newColumnId: string) => {
+  const handleMoveCard = useCallback((cardId: string, newColumnId: string) => {
     setCards((prev) =>
       prev.map((c) => (c.id === cardId ? { ...c, column_id: newColumnId } : c))
     )
     startTransition(async () => {
       await moveCard(cardId, newColumnId, boardId)
     })
-  }
+  }, [boardId])
+
+  // ─── Drag & Drop ───
+
+  const handleDragStart = useCallback((cardId: string) => {
+    setDraggedCardId(cardId)
+  }, [])
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedCardId(null)
+  }, [])
+
+  const handleDrop = useCallback((targetColumnId: string) => {
+    if (!draggedCardId) return
+    const card = cards.find((c) => c.id === draggedCardId)
+    if (!card || card.column_id === targetColumnId) {
+      setDraggedCardId(null)
+      return
+    }
+    handleMoveCard(draggedCardId, targetColumnId)
+    setDraggedCardId(null)
+  }, [draggedCardId, cards, handleMoveCard])
 
   return (
     <div className="flex gap-5 p-6 overflow-x-auto h-full items-start">
@@ -117,6 +139,10 @@ export function KanbanBoard({ boardId, initialColumns, initialCards }: Props) {
           onDeleteCard={handleDeleteCard}
           onMoveCard={handleMoveCard}
           onDeleteColumn={handleDeleteColumn}
+          draggedCardId={draggedCardId}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDrop={handleDrop}
         />
       ))}
 
