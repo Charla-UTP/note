@@ -10,10 +10,18 @@ export default function SignInPage() {
 
   const handleOAuth = async (provider: 'github' | 'google') => {
     const insforge = createInsForgeClient()
-    await insforge.auth.signInWithOAuth({
+    const { data, error } = await insforge.auth.signInWithOAuth({
       provider,
-      redirectTo: window.location.origin + '/',
+      redirectTo: window.location.origin + '/auth/callback',
+      skipBrowserRedirect: true,
     })
+    if (error) {
+      console.error('OAuth error:', error)
+      return
+    }
+    if (data?.url) {
+      window.location.href = data.url
+    }
   }
 
   return (
